@@ -124,12 +124,7 @@ public class UserServiceImpl implements UserService {
                 codeService
                         .findUserCode(user);
 
-        String hashing =
-                BCrypt.hashpw(
-                        code
-                        , BCrypt.gensalt());
-
-        if (!BCrypt.checkpw(checkUserCode.getCode(), hashing)) {
+        if (!BCrypt.checkpw(code,checkUserCode.getCode())){
             return new ResponseEntity<>(
                     new ErrorResponse("Авторизация не пройдена!", "Вы ввели некорректный код подтверждения!")
                     , HttpStatus.NOT_FOUND);
@@ -146,7 +141,7 @@ public class UserServiceImpl implements UserService {
                                     tokensTimeLive
                                             .getTime())
                             .signWith(
-                                    SignatureAlgorithm.ES256
+                                    SignatureAlgorithm.HS256
                                     , secretKey)
                             .compact();
 
