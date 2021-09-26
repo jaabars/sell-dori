@@ -4,12 +4,14 @@ import com.example.saleservicespringproject.dao.UserRepo;
 import com.example.saleservicespringproject.mappers.UserMapper;
 import com.example.saleservicespringproject.models.dtos.UserDto;
 import com.example.saleservicespringproject.models.entities.Code;
+import com.example.saleservicespringproject.models.entities.Request;
 import com.example.saleservicespringproject.models.entities.User;
 import com.example.saleservicespringproject.models.enums.CodeStatus;
 import com.example.saleservicespringproject.models.responses.ErrorResponse;
 import com.example.saleservicespringproject.models.responses.OkResponse;
 import com.example.saleservicespringproject.models.responses.SuccessLogin;
 import com.example.saleservicespringproject.services.CodeService;
+import com.example.saleservicespringproject.services.RequestService;
 import com.example.saleservicespringproject.services.SendSimpleMessage;
 import com.example.saleservicespringproject.services.UserService;
 import io.jsonwebtoken.Jwts;
@@ -21,7 +23,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 
 @Service
@@ -35,6 +39,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private CodeService codeService;
+
+    @Autowired
+    private RequestService requestService;
 
     @Value("${jwtSecret}")
     private String secretKey;
@@ -73,6 +80,19 @@ public class UserServiceImpl implements UserService {
                     , HttpStatus.NOT_FOUND);
         }
 
+        if (Objects.nonNull(user.getEndOfBlockDate())) {
+            if (new Date().before(user.getEndOfBlockDate())) {
+                SimpleDateFormat formatToShowEndOfBlockDate =
+                        new SimpleDateFormat("hh:mm a");
+
+                return ResponseEntity.ok(" Превышено количество попыток входа, вы заблокированы. Повторите попытку в " +
+                        formatToShowEndOfBlockDate
+                                .format(
+                                        user.getEndOfBlockDate()));
+
+            }
+        }
+
         Code lastCode =
                 codeService.findUserCode(user);
 
@@ -82,7 +102,9 @@ public class UserServiceImpl implements UserService {
             codeService.saveCode(lastCode);
         }
 
-        int code = codeService.randomCode();
+        int code =
+                codeService.randomCode();
+
         String hashedCode =
                 BCrypt
                         .hashpw(
@@ -120,36 +142,83 @@ public class UserServiceImpl implements UserService {
                     , HttpStatus.NOT_FOUND);
         }
 
+        if (Objects.nonNull(user.getBlockDate())) {
+            if (new Date().before(user.getEndOfBlockDate())) {
+                SimpleDateFormat formatToShowEndOfBlockDate =
+                        new SimpleDateFormat("hh:mm a");
+
+                return ResponseEntity.ok(" Превышено количество попыток входа, вы заблокированы. Повторите попытку в " +
+                        formatToShowEndOfBlockDate
+                                .format(
+                                        user.getEndOfBlockDate()));
+            }
+        }
+
         Code checkUserCode =
                 codeService
                         .findUserCode(user);
 
-        if (!BCrypt.checkpw(code,checkUserCode.getCode())){
+        if (new Date().after(checkUserCode.getEndDate())) {
+            return new ResponseEntity<>(
+                    new ErrorResponse(
+                            "Время действия кода подтверждения истек!"
+                            , "Вам нужно получить код подтверждения повторно!")
+                    , HttpStatus.OK
+            );
+        }
+
+        if (!BCrypt.checkpw(code, checkUserCode.getCode())) {
+
+            Request request = new Request();
+            request.setCode(checkUserCode);
+            request.setSuccess(false);
+            requestService.saveRequest(request);
+
+            if (requestService.countFailedAttempts(checkUserCode) >= 3) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.HOUR, 1);
+
+                user.setBlockDate(new Date());
+                user.setEndOfBlockDate(calendar.getTime());
+                userRepo.save(user);
+
+                Code forSettingCodeStatus = codeService.findUserCode(user);
+                forSettingCodeStatus.setCodeStatus(CodeStatus.FAILED);
+                codeService.saveCode(forSettingCodeStatus);
+            }
+
             return new ResponseEntity<>(
                     new ErrorResponse("Авторизация не пройдена!", "Вы ввели некорректный код подтверждения!")
                     , HttpStatus.NOT_FOUND);
-        } else {
-            Calendar tokensTimeLive =
-                    Calendar.getInstance();
-            tokensTimeLive
-                    .add(Calendar.MINUTE, 5);
 
-            String token =
-                    Jwts.builder()
-                            .claim("login", login)
-                            .setExpiration(
-                                    tokensTimeLive
-                                            .getTime())
-                            .signWith(
-                                    SignatureAlgorithm.HS256
-                                    , secretKey)
-                            .compact();
-
-            SuccessLogin successLogin = new SuccessLogin("Вы успешно ввели пароль!", token);
-
-            return ResponseEntity.ok(successLogin);
         }
 
+        Calendar tokensTimeLive =
+                Calendar.getInstance();
+        tokensTimeLive
+                .add(Calendar.MINUTE, 5);
+
+        String token =
+                Jwts.builder()
+                        .claim("login", login)
+                        .setExpiration(
+                                tokensTimeLive
+                                        .getTime())
+                        .signWith(
+                                SignatureAlgorithm.HS256
+                                , secretKey)
+                        .compact();
+
+        Code forSetApproved =
+                codeService.findUserCode(user);
+
+        forSetApproved
+                .setCodeStatus(CodeStatus.APPROVED);
+
+        codeService.saveCode(forSetApproved);
+
+        SuccessLogin successLogin = new SuccessLogin("Вы успешно ввели пароль!", token);
+
+        return ResponseEntity.ok(successLogin);
     }
 }
-
