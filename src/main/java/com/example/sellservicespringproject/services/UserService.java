@@ -10,4 +10,6 @@ public interface UserService {
     ResponseEntity<?> sendCode(String login);
 
     ResponseEntity<?> getToken(String login, String code);
+
+    ResponseEntity<?> verifyLogin(String token);
 }
