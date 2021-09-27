@@ -27,4 +27,9 @@ public class UserController {
     public ResponseEntity<?> getToken(@RequestParam String login, @RequestParam String code) {
         return userService.getToken(login, code);
     }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyLogin(@RequestParam String token) {
+        return userService.verifyLogin(token);
+    }
 }
