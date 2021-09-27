@@ -81,7 +81,9 @@ public class UserServiceImpl implements UserService {
         }
 
         if (Objects.nonNull(user.getEndOfBlockDate())) {
+
             if (new Date().before(user.getEndOfBlockDate())) {
+
                 SimpleDateFormat formatToShowEndOfBlockDate =
                         new SimpleDateFormat("hh:mm a");
 
@@ -89,7 +91,6 @@ public class UserServiceImpl implements UserService {
                         formatToShowEndOfBlockDate
                                 .format(
                                         user.getEndOfBlockDate()));
-
             }
         }
 
@@ -97,6 +98,7 @@ public class UserServiceImpl implements UserService {
                 codeService.findUserCode(user);
 
         if (Objects.nonNull(lastCode)) {
+
             lastCode.setCodeStatus(CodeStatus.CANCELLED);
 
             codeService.saveCode(lastCode);
@@ -137,13 +139,16 @@ public class UserServiceImpl implements UserService {
         User user = userRepo.findByLogin(login);
 
         if (Objects.isNull(user)) {
+
             return new ResponseEntity<>(
                     new ErrorResponse("Некорректный логин!", null)
                     , HttpStatus.NOT_FOUND);
         }
 
         if (Objects.nonNull(user.getBlockDate())) {
+
             if (new Date().before(user.getEndOfBlockDate())) {
+
                 SimpleDateFormat formatToShowEndOfBlockDate =
                         new SimpleDateFormat("hh:mm a");
 
