@@ -119,7 +119,7 @@ public class UserServiceImpl implements UserService {
         Code saveCode = new Code();
         saveCode.setCode(hashedCode);
         saveCode.setEndDate(endOfCodeAction.getTime());
-        saveCode.setCodeStatus(CodeStatus.valueOf("NEW"));
+        saveCode.setCodeStatus(CodeStatus.NEW);
         saveCode.setUser(user);
         codeService.saveCode(saveCode);
 
@@ -171,9 +171,10 @@ public class UserServiceImpl implements UserService {
             );
         }
 
+        Request request = new Request();
+
         if (!BCrypt.checkpw(code, checkUserCode.getCode())) {
 
-            Request request = new Request();
             request.setCode(checkUserCode);
             request.setSuccess(false);
             requestService.saveRequest(request);
@@ -186,9 +187,8 @@ public class UserServiceImpl implements UserService {
                 user.setEndOfBlockDate(calendar.getTime());
                 userRepo.save(user);
 
-                Code forSettingCodeStatus = codeService.findUserCode(user);
-                forSettingCodeStatus.setCodeStatus(CodeStatus.FAILED);
-                codeService.saveCode(forSettingCodeStatus);
+                checkUserCode.setCodeStatus(CodeStatus.FAILED);
+                codeService.saveCode(checkUserCode);
             }
 
             return new ResponseEntity<>(
@@ -197,7 +197,6 @@ public class UserServiceImpl implements UserService {
 
         }
 
-        Request request = new Request();
         request.setCode(checkUserCode);
         request.setSuccess(true);
         requestService.saveRequest(request);
@@ -218,13 +217,8 @@ public class UserServiceImpl implements UserService {
                                 , secretKey)
                         .compact();
 
-        Code forSetApproved =
-                codeService.findUserCode(user);
-
-        forSetApproved
-                .setCodeStatus(CodeStatus.APPROVED);
-
-        codeService.saveCode(forSetApproved);
+        checkUserCode.setCodeStatus(CodeStatus.APPROVED);
+        codeService.saveCode(checkUserCode);
 
         SuccessLogin successLogin = new SuccessLogin("Вы успешно ввели пароль!", token);
 
@@ -235,16 +229,22 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> verifyLogin(String token) {
         try {
             Jws<Claims> jwt = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+
             return ResponseEntity.ok(jwt.getBody().get("login"));
         } catch (ExpiredJwtException jwtException) {
+
             return new ResponseEntity<>("Время действия токена истек", HttpStatus.CONFLICT);
         } catch (UnsupportedJwtException jwtException) {
+
             return new ResponseEntity<>("Неподерживаемый токен", HttpStatus.CONFLICT);
         } catch (MalformedJwtException jwtException) {
+
             return new ResponseEntity<>("Некорректный токен", HttpStatus.CONFLICT);
         } catch (SignatureException signatureException) {
+
             return new ResponseEntity<>("Некорректная подпись в токене!", HttpStatus.CONFLICT);
         } catch (Exception exception) {
+
             return new ResponseEntity<>("unauthorized", HttpStatus.CONFLICT);
         }
     }
