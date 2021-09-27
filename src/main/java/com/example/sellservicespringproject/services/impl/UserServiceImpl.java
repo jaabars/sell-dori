@@ -130,7 +130,7 @@ public class UserServiceImpl implements UserService {
                         , Integer.toString(code));
 
         return ResponseEntity.ok(
-                new OkResponse("Письмо успешно отправлено!", null));
+                new OkResponse("Код подтверждения успешно отправлен!", null));
     }
 
     @Override
@@ -197,6 +197,11 @@ public class UserServiceImpl implements UserService {
                     , HttpStatus.NOT_FOUND);
 
         }
+
+        Request request = new Request();
+        request.setCode(checkUserCode);
+        request.setSuccess(true);
+        requestService.saveRequest(request);
 
         Calendar tokensTimeLive =
                 Calendar.getInstance();
