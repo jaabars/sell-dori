@@ -14,8 +14,7 @@ import com.example.sellservicespringproject.services.CodeService;
 import com.example.sellservicespringproject.services.RequestService;
 import com.example.sellservicespringproject.services.SendSimpleMessage;
 import com.example.sellservicespringproject.services.UserService;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -230,5 +229,15 @@ public class UserServiceImpl implements UserService {
         SuccessLogin successLogin = new SuccessLogin("Вы успешно ввели пароль!", token);
 
         return ResponseEntity.ok(successLogin);
+    }
+
+    @Override
+    public ResponseEntity<?> verifyLogin(String token) {
+        try {
+            Jws<Claims> jwt = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            return ResponseEntity.ok(jwt.getBody().get("login"));
+        } catch (ExpiredJwtException jwtException) {
+            return new ResponseEntity<>("unauthorized", HttpStatus.CONFLICT);
+        }
     }
 }
