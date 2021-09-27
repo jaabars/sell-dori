@@ -237,7 +237,15 @@ public class UserServiceImpl implements UserService {
             Jws<Claims> jwt = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             return ResponseEntity.ok(jwt.getBody().get("login"));
         } catch (ExpiredJwtException jwtException) {
-            return new ResponseEntity<>("Непрвильно ввели токен или время действия токена истек", HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Время действия токена истек", HttpStatus.CONFLICT);
+        } catch (UnsupportedJwtException jwtException) {
+            return new ResponseEntity<>("Неподерживаемый токен", HttpStatus.CONFLICT);
+        } catch (MalformedJwtException jwtException) {
+            return new ResponseEntity<>("Некорректный токен", HttpStatus.CONFLICT);
+        } catch (SignatureException signatureException) {
+            return new ResponseEntity<>("Некорректная подпись в токене!", HttpStatus.CONFLICT);
+        } catch (Exception exception) {
+            return new ResponseEntity<>("unauthorized", HttpStatus.CONFLICT);
         }
     }
 }
