@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService {
         } else {
             return new ResponseEntity<>(
                     new ErrorResponse("Пользователь уже существует", null)
-                    , HttpStatus.OK);
+                    , HttpStatus.CONFLICT);
         }
 
         return ResponseEntity.ok(
@@ -148,7 +148,7 @@ public class UserServiceImpl implements UserService {
                     new ErrorResponse(
                             "Время действия кода подтверждения истек!"
                             , "Вам нужно получить код подтверждения повторно!")
-                    , HttpStatus.OK
+                    , HttpStatus.CONFLICT
             );
         }
 
@@ -223,6 +223,3 @@ public class UserServiceImpl implements UserService {
         }
     }
 }
-
-
-
