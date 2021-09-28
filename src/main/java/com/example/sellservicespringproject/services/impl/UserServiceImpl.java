@@ -93,6 +93,8 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+
+        // между сервисами передаем DTO
         Code lastCode =
                 codeService.findUserCode(user);
 
@@ -106,6 +108,7 @@ public class UserServiceImpl implements UserService {
         int code =
                 codeService.randomCode();
 
+        //String.valueOf(code);
         String hashedCode =
                 BCrypt
                         .hashpw(
@@ -116,6 +119,7 @@ public class UserServiceImpl implements UserService {
         Calendar endOfCodeAction = Calendar.getInstance();
         endOfCodeAction.add(Calendar.MINUTE, 3);
 
+        //Dto
         Code saveCode = new Code();
         saveCode.setCode(hashedCode);
         saveCode.setEndDate(endOfCodeAction.getTime());
@@ -167,15 +171,13 @@ public class UserServiceImpl implements UserService {
                     new ErrorResponse(
                             "Время действия кода подтверждения истек!"
                             , "Вам нужно получить код подтверждения повторно!")
-                    , HttpStatus.OK
+                    , HttpStatus.CONFLICT
             );
         }
 
         Request request = new Request();
-
+        request.setCode(checkUserCode);
         if (!BCrypt.checkpw(code, checkUserCode.getCode())) {
-
-            request.setCode(checkUserCode);
             request.setSuccess(false);
             requestService.saveRequest(request);
 
@@ -196,8 +198,6 @@ public class UserServiceImpl implements UserService {
                     , HttpStatus.NOT_FOUND);
 
         }
-
-        request.setCode(checkUserCode);
         request.setSuccess(true);
         requestService.saveRequest(request);
 
