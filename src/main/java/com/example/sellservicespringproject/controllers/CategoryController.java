@@ -20,13 +20,18 @@ public class CategoryController {
         return categoryService.saveCategory(token, categoryDto);
     }
 
+    @PutMapping("/update")
+    public ResponseEntity<?> updateCategory(@RequestHeader String token, @RequestBody CategoryDto categoryDto) {
+        return categoryService.saveCategory(token,categoryDto);
+    }
+
     @GetMapping("/getByName")
-    public ResponseEntity<?> getByName (@RequestParam String name) {
-        return categoryService.getByName(name);
+    public ResponseEntity<?> getByName (@RequestHeader String token,@RequestParam String name) {
+        return categoryService.getByName(token, name);
     }
 
     @GetMapping("/getAllCategories")
-    public List<CategoryDto> getAllCategories () {
-        return categoryService.getAllCategories();
+    public List<CategoryDto> getAllCategories (@RequestHeader String token) {
+        return categoryService.getAllCategories(token);
     }
 }
