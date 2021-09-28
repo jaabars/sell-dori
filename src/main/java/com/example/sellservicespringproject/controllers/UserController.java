@@ -29,7 +29,7 @@ public class UserController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<?> verifyLogin(@RequestParam String token) {
+    public ResponseEntity<?> verifyLogin(@RequestHeader String token) {
         return userService.verifyLogin(token);
     }
 }
