@@ -9,7 +9,7 @@ public interface CategoryService {
 
     ResponseEntity<?> saveCategory(String token, CategoryDto categoryDto);
 
-    ResponseEntity<?> getByName(String name);
+    ResponseEntity<?> getByName(String token, String name);
 
-    List<CategoryDto> getAllCategories();
+    List<CategoryDto> getAllCategories(String token);
 }
