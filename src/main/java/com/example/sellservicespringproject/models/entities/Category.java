@@ -20,6 +20,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(unique = true)
     String name;
     boolean active;
 }
