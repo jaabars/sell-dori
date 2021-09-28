@@ -12,7 +12,7 @@ import java.util.Date;
 public class CodeDto {
 
     Long id;
-    int code;
+    String code;
     Date startDate;
     Date endDate;
     CodeStatus codeStatus;
