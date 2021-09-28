@@ -1,11 +1,10 @@
 package com.example.sellservicespringproject.services;
 
-import com.example.sellservicespringproject.models.entities.Code;
-import com.example.sellservicespringproject.models.entities.Request;
+import com.example.sellservicespringproject.models.dtos.CodeDto;
 
 public interface RequestService {
 
-    void saveRequest(Request request);
+    void saveRequest(CodeDto codeDto, boolean value);
 
-    int countFailedAttempts(Code code);
+    int countFailedAttempts(CodeDto codeDto);
 }

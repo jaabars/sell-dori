@@ -15,5 +15,5 @@ public class UserDto {
     String login;
     boolean active;
     String email;
-    Date blockDate;
+    Date endOfBlockDate;
 }

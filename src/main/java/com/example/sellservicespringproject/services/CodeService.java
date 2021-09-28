@@ -1,13 +1,14 @@
 package com.example.sellservicespringproject.services;
 
+import com.example.sellservicespringproject.models.dtos.CodeDto;
+import com.example.sellservicespringproject.models.dtos.UserDto;
 import com.example.sellservicespringproject.models.entities.Code;
-import com.example.sellservicespringproject.models.entities.User;
 
 public interface CodeService {
 
-    int randomCode();
+    void saveCode(CodeDto codeDto);
 
-    void saveCode(Code code);
+    Code findLastCode(UserDto userDto);
 
-    Code findUserCode(User user);
+    void sendCode(UserDto userDto);
 }

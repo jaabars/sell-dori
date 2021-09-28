@@ -28,6 +28,5 @@ public class User {
 
     @Column(unique = true)
     String email;
-    Date blockDate;
     Date endOfBlockDate;
 }
