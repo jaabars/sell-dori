@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CategoryService {
 
-    ResponseEntity<?> saveCategory(String toekn, CategoryDto categoryDto);
+    ResponseEntity<?> saveCategory(String token, CategoryDto categoryDto);
 
     ResponseEntity<?> getByName(String name);
 
