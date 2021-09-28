@@ -31,11 +31,9 @@ public class CategoryServiceImpl implements CategoryService {
         userService.verifyLogin(token);
 
         Category category =
-                categoryRepo
-                        .save(
-                                CategoryMapper
-                                        .INSTANCE
-                                        .mapToCategory(categoryDto));
+                CategoryMapper
+                        .INSTANCE
+                        .mapToCategory(categoryDto);
 
         if (Objects.isNull(categoryRepo.findByName(category.getName()))) {
             categoryRepo.save(category);
@@ -52,7 +50,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public ResponseEntity<?> getByName(String name) {
+    public ResponseEntity<?> getByName(String token, String name) {
+
+        userService.verifyLogin(token);
 
         Category category =
                 categoryRepo
@@ -71,7 +71,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> getAllCategories() {
+    public List<CategoryDto> getAllCategories(String token) {
+
+        userService.verifyLogin(token);
 
         List<Category> categoryList =
                 categoryRepo.findAll();
