@@ -50,7 +50,6 @@ public class CodeServiceImpl implements CodeService {
 
         int code = (int) ((Math.random() * 9000) + 1000);
 
-
         String hashedCode =
                 BCrypt
                         .hashpw(
