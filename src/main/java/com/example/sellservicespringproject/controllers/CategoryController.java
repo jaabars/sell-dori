@@ -31,7 +31,7 @@ public class CategoryController {
     }
 
     @GetMapping("/getAllCategories")
-    public List<CategoryDto> getAllCategories (@RequestHeader String token) {
+    public ResponseEntity<?> getAllCategories (@RequestHeader String token) {
         return categoryService.getAllCategories(token);
     }
 }
