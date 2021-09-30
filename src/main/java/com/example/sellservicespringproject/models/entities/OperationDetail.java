@@ -28,6 +28,6 @@ public class OperationDetail {
     @JoinColumn(name = "operation_id")
     Operation operation;
 
-    int number;
-    double price;
+    int quantity;
+    double amount;
 }
