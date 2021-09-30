@@ -7,6 +7,7 @@ import com.example.sellservicespringproject.models.entities.Category;
 import com.example.sellservicespringproject.models.responses.ErrorResponse;
 import com.example.sellservicespringproject.services.CategoryService;
 import com.example.sellservicespringproject.services.UserService;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,13 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ResponseEntity<?> saveCategory(String token, CategoryDto categoryDto) {
 
-        userService.verifyLogin(token);
+        ResponseEntity<?> responseEntity =
+                userService.verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+
+            return responseEntity;
+        }
 
         Category category =
                 CategoryMapper
@@ -36,8 +43,10 @@ public class CategoryServiceImpl implements CategoryService {
                         .mapToCategory(categoryDto);
 
         if (Objects.isNull(categoryRepo.findByName(category.getName()))) {
+
             categoryRepo.save(category);
         } else {
+
             return new ResponseEntity<>(
                     new ErrorResponse("Такая категория товаров уже существует!", null)
                     , HttpStatus.CONFLICT);
@@ -52,7 +61,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ResponseEntity<?> getByName(String token, String name) {
 
-        userService.verifyLogin(token);
+        ResponseEntity<?> responseEntity =
+                userService
+                        .verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+
+            return responseEntity;
+        }
 
         Category category =
                 categoryRepo
@@ -70,19 +86,27 @@ public class CategoryServiceImpl implements CategoryService {
                         .mapToCategoryDto(category));
     }
 
+    @SneakyThrows
     @Override
-    public List<CategoryDto> getAllCategories(String token) {
+    public ResponseEntity<?> getAllCategories(String token) {
 
-        userService.verifyLogin(token);
+        ResponseEntity<?> responseEntity =
+                userService
+                        .verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+
+            return responseEntity;
+        }
 
         List<Category> categoryList =
                 categoryRepo.findAll();
 
-        return categoryList
+        return ResponseEntity.ok(categoryList
                 .stream()
-                .map(
-                        CategoryMapper
-                                .INSTANCE::mapToCategoryDto)
-                .collect(Collectors.toList());
+                .map(CategoryMapper
+                        .INSTANCE::mapToCategoryDto)
+                .collect(
+                        Collectors.toList()));
     }
 }
