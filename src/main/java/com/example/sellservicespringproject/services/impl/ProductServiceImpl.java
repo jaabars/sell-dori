@@ -28,7 +28,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ResponseEntity<?> saveProduct(String token, ProductDto productDto) {
 
-        userService.verifyLogin(token);
+        ResponseEntity<?> responseEntity =
+                userService
+                        .verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)){
+
+            return responseEntity;
+        }
 
         Product product =
                 ProductMapper
@@ -53,7 +60,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ResponseEntity<?> getProductByBarcode(String token, String barcode) {
 
-        userService.verifyLogin(token);
+        ResponseEntity<?> responseEntity =
+                userService
+                        .verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)){
+
+            return responseEntity;
+        }
 
         Product product =
                 productRepo
@@ -72,16 +86,26 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> getAllProducts(String token) {
+    public ResponseEntity<?> getAllProducts(String token) {
+
+        ResponseEntity<?> responseEntity =
+                userService
+                        .verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)){
+
+            return responseEntity;
+        }
+
         List<Product> productList =
                 productRepo.findAll();
 
-        return productList
+        return ResponseEntity.ok(productList
                 .stream()
                 .map(ProductMapper
                         .INSTANCE::mapToProductDto)
                 .collect(
                         Collectors
-                                .toList());
+                                .toList()));
     }
 }
