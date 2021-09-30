@@ -178,7 +178,7 @@ public class UserServiceImpl implements UserService {
         Calendar tokensTimeLive =
                 Calendar.getInstance();
         tokensTimeLive
-                .add(Calendar.MINUTE, 5);
+                .add(Calendar.HOUR, 3);
 
         String token =
                 Jwts.builder()
