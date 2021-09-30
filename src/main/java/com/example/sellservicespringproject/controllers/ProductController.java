@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("api/vq/product")
 public class ProductController {
@@ -31,7 +29,7 @@ public class ProductController {
     }
 
     @GetMapping("/getAllProducts")
-    public List<ProductDto> getAllProducts(@RequestHeader String token) {
+    public ResponseEntity<?> getAllProducts(@RequestHeader String token) {
         return productService.getAllProducts(token);
     }
 }
