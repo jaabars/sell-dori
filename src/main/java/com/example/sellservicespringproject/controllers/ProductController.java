@@ -1,5 +1,21 @@
 package com.example.sellservicespringproject.controllers;
 
+<<<<<<< HEAD
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class ProductController {
+
+    /**
+     *C
+     * R
+     * U
+     * D
+     *
+     */
+
+}
+=======
 import com.example.sellservicespringproject.models.dtos.ProductDto;
 import com.example.sellservicespringproject.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,3 +49,4 @@ public class ProductController {
         return productService.getAllProducts(token);
     }
 }
+>>>>>>> 4b30d6ee2da6934bb663720aac9455c2ac9d45d2

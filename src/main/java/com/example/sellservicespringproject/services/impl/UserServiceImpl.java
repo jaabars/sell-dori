@@ -1,10 +1,10 @@
 package com.example.sellservicespringproject.services.impl;
 
 import com.example.sellservicespringproject.dao.UserRepo;
-import com.example.sellservicespringproject.mappers.CodeMapper;
 import com.example.sellservicespringproject.mappers.UserMapper;
-import com.example.sellservicespringproject.models.dtos.CodeDto;
 import com.example.sellservicespringproject.models.dtos.UserDto;
+import com.example.sellservicespringproject.models.entities.Code;
+import com.example.sellservicespringproject.models.entities.Request;
 import com.example.sellservicespringproject.models.entities.User;
 import com.example.sellservicespringproject.models.enums.CodeStatus;
 import com.example.sellservicespringproject.models.responses.ErrorResponse;
@@ -12,6 +12,7 @@ import com.example.sellservicespringproject.models.responses.OkResponse;
 import com.example.sellservicespringproject.models.responses.SuccessLogin;
 import com.example.sellservicespringproject.services.CodeService;
 import com.example.sellservicespringproject.services.RequestService;
+import com.example.sellservicespringproject.services.SendSimpleMessage;
 import com.example.sellservicespringproject.services.UserService;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private SendSimpleMessage sendMessage;
 
     @Autowired
     private CodeService codeService;
@@ -55,25 +59,13 @@ public class UserServiceImpl implements UserService {
         } else {
             return new ResponseEntity<>(
                     new ErrorResponse("Пользователь уже существует", null)
-                    , HttpStatus.CONFLICT);
+                    , HttpStatus.OK);
         }
 
         return ResponseEntity.ok(
                 UserMapper
                         .INSTANCE
                         .mapToUserDto(user));
-    }
-
-    @Override
-    public boolean userLockOutChecking(User user) {
-
-        if (Objects.nonNull(user.getEndOfBlockDate())) {
-
-            if (new Date().before(user.getEndOfBlockDate())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -87,22 +79,54 @@ public class UserServiceImpl implements UserService {
                     , HttpStatus.NOT_FOUND);
         }
 
-        boolean check = userLockOutChecking(user);
+        if (Objects.nonNull(user.getEndOfBlockDate())) {
 
-        if (check) {
-            SimpleDateFormat formatToShowEndOfBlockDate =
+            if (new Date().before(user.getEndOfBlockDate())) {
+
+                SimpleDateFormat formatToShowEndOfBlockDate =
                         new SimpleDateFormat("hh:mm a");
 
-                return new ResponseEntity<>(" Превышено количество попыток входа, вы заблокированы. Повторите попытку в " +
+                return ResponseEntity.ok(" Превышено количество попыток входа, вы заблокированы. Повторите попытку в " +
                         formatToShowEndOfBlockDate
                                 .format(
-                                        user.getEndOfBlockDate()), HttpStatus.CONFLICT);
+                                        user.getEndOfBlockDate()));
+            }
         }
 
-        codeService.sendCode(
-                UserMapper
-                        .INSTANCE
-                        .mapToUserDto(user));
+        Code lastCode =
+                codeService.findUserCode(user);
+
+        if (Objects.nonNull(lastCode)) {
+
+            lastCode.setCodeStatus(CodeStatus.CANCELLED);
+
+            codeService.saveCode(lastCode);
+        }
+
+        int code =
+                codeService.randomCode();
+
+        String hashedCode =
+                BCrypt
+                        .hashpw(
+                                Integer
+                                        .toString(code)
+                                , BCrypt.gensalt());
+
+        Calendar endOfCodeAction = Calendar.getInstance();
+        endOfCodeAction.add(Calendar.MINUTE, 3);
+
+        Code saveCode = new Code();
+        saveCode.setCode(hashedCode);
+        saveCode.setEndDate(endOfCodeAction.getTime());
+        saveCode.setCodeStatus(CodeStatus.NEW);
+        saveCode.setUser(user);
+        codeService.saveCode(saveCode);
+
+        sendMessage
+                .sendSimpleMessage(
+                        user.getEmail()
+                        , Integer.toString(code));
 
         return ResponseEntity.ok(
                 new OkResponse("Код подтверждения успешно отправлен!", null));
@@ -120,46 +144,46 @@ public class UserServiceImpl implements UserService {
                     , HttpStatus.NOT_FOUND);
         }
 
-        boolean check = userLockOutChecking(user);
+        if (Objects.nonNull(user.getBlockDate())) {
 
-        if (check) {
-            SimpleDateFormat formatToShowEndOfBlockDate =
+            if (new Date().before(user.getEndOfBlockDate())) {
+
+                SimpleDateFormat formatToShowEndOfBlockDate =
                         new SimpleDateFormat("hh:mm a");
 
-                return new ResponseEntity<>(" Превышено количество попыток входа, вы заблокированы. Повторите попытку в " +
+                return ResponseEntity.ok(" Превышено количество попыток входа, вы заблокированы. Повторите попытку в " +
                         formatToShowEndOfBlockDate
                                 .format(
-                                        user.getEndOfBlockDate()), HttpStatus.CONFLICT);
+                                        user.getEndOfBlockDate()));
+            }
         }
 
-        CodeDto checkUserCode =
-                CodeMapper
-                        .INSTANCE
-                        .mapToCodeDto(
-                                codeService
-                                        .findLastCode(
-                                                UserMapper
-                                                        .INSTANCE
-                                                        .mapToUserDto(user)));
-
+        Code checkUserCode =
+                codeService
+                        .findUserCode(user);
 
         if (new Date().after(checkUserCode.getEndDate())) {
             return new ResponseEntity<>(
                     new ErrorResponse(
                             "Время действия кода подтверждения истек!"
                             , "Вам нужно получить код подтверждения повторно!")
-                    , HttpStatus.CONFLICT
+                    , HttpStatus.OK
             );
         }
 
+        Request request = new Request();
+
         if (!BCrypt.checkpw(code, checkUserCode.getCode())) {
 
-            requestService.saveRequest(checkUserCode, false);
+            request.setCode(checkUserCode);
+            request.setSuccess(false);
+            requestService.saveRequest(request);
 
             if (requestService.countFailedAttempts(checkUserCode) >= 3) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.add(Calendar.HOUR, 1);
 
+                user.setBlockDate(new Date());
                 user.setEndOfBlockDate(calendar.getTime());
                 userRepo.save(user);
 
@@ -173,7 +197,9 @@ public class UserServiceImpl implements UserService {
 
         }
 
-        requestService.saveRequest(checkUserCode, true);
+        request.setCode(checkUserCode);
+        request.setSuccess(true);
+        requestService.saveRequest(request);
 
         Calendar tokensTimeLive =
                 Calendar.getInstance();
