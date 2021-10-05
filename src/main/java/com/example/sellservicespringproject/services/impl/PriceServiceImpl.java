@@ -94,11 +94,11 @@ public class PriceServiceImpl implements PriceService {
 
         Price price =
                 priceRepo
-                        .findByProductAndEndDateAfter(
+                        .findActualPrice(
                                 ProductMapper
                                         .INSTANCE
                                         .mapToProduct(productDto)
-                                , new Date());
+                        );
 
         if (Objects.isNull(price)) {
 
@@ -120,7 +120,7 @@ public class PriceServiceImpl implements PriceService {
                 userService
                         .verifyLogin(token);
 
-        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)){
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 
             return responseEntity;
         }
@@ -137,5 +137,18 @@ public class PriceServiceImpl implements PriceService {
                                         .INSTANCE::mapToPriceDto)
                         .collect(
                                 Collectors.toList()));
+    }
+
+    @Override
+    public double findPriceByProductForOperationDetails(ProductDto productDto) {
+        Price actualPrice =
+                priceRepo
+                        .findActualPrice(
+                                ProductMapper
+                                        .INSTANCE
+                                        .mapToProduct(productDto));
+
+        return actualPrice
+                .getPrice();
     }
 }
