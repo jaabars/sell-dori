@@ -11,4 +11,6 @@ public interface PriceService {
     ResponseEntity<?> getPriceByProduct(String token, ProductDto productDto);
 
     ResponseEntity<?> getAllPrices(String token);
+
+    double findPriceByProductForOperationDetails(ProductDto productDto);
 }
