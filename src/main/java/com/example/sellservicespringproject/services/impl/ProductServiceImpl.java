@@ -32,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
                 userService
                         .verifyLogin(token);
 
-        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)){
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 
             return responseEntity;
         }
@@ -58,13 +58,40 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ResponseEntity<?> updateProduct(String token, ProductDto productDto) {
+
+        ResponseEntity<?> responseEntity =
+                userService
+                        .verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+
+            return responseEntity;
+        }
+
+        Product product =
+                ProductMapper
+                        .INSTANCE
+                        .mapToProduct(productDto);
+
+        productRepo.save(product);
+
+
+        return ResponseEntity.ok(
+                "Товар успешно обновлен!" +
+                        ProductMapper
+                                .INSTANCE
+                                .mapToProductDto(product));
+    }
+
+    @Override
     public ResponseEntity<?> getProductByBarcode(String token, String barcode) {
 
         ResponseEntity<?> responseEntity =
                 userService
                         .verifyLogin(token);
 
-        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)){
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 
             return responseEntity;
         }
@@ -92,7 +119,7 @@ public class ProductServiceImpl implements ProductService {
                 userService
                         .verifyLogin(token);
 
-        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)){
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
 
             return responseEntity;
         }
@@ -107,5 +134,16 @@ public class ProductServiceImpl implements ProductService {
                 .collect(
                         Collectors
                                 .toList()));
+    }
+
+    @Override
+    public ProductDto findProductByBarcodeForOperationDetails(String barcode) {
+
+        return ProductMapper
+                .INSTANCE
+                .mapToProductDto(
+                        productRepo
+                                .findByBarcode(barcode)
+                );
     }
 }
