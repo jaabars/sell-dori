@@ -10,4 +10,8 @@ public interface ProductService {
     ResponseEntity<?> getProductByBarcode(String token, String barcode);
 
     ResponseEntity<?> getAllProducts(String token);
+
+    ProductDto findProductByBarcodeForOperationDetails(String barcode);
+
+    ResponseEntity<?> updateProduct(String token, ProductDto productDto);
 }
