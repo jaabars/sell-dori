@@ -11,4 +11,6 @@ public interface DiscountService {
     ResponseEntity<?> getDiscountByProduct(String token, ProductDto productDto);
 
     ResponseEntity<?> getAllDiscounts(String token);
+
+    double findDiscountByProduct(ProductDto productDto);
 }
