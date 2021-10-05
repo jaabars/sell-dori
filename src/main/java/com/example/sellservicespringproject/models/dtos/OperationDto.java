@@ -13,7 +13,7 @@ public class OperationDto {
     Long id;
     Date startDate;
     Date endDate;
-    double totalPrice;
+    double totalAmount;
     double change;
     UserDto user;
     double cash;
