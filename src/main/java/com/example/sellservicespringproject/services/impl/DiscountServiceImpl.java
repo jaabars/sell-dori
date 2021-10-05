@@ -131,4 +131,17 @@ public class DiscountServiceImpl implements DiscountService {
                         .collect(Collectors
                                 .toList()));
     }
+
+    @Override
+    public double findDiscountByProduct(ProductDto productDto) {
+
+        Discount discount =
+                discountRepo
+                        .findActualDiscount(
+                                productDto
+                                        .getId());
+
+        return discount
+                .getDiscount();
+    }
 }
