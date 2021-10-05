@@ -24,7 +24,7 @@ public class Operation {
 
     @CreationTimestamp
     Date addDate;
-    double totalPrice;
+    double totalAmount;
     double change;
 
     @ManyToOne
