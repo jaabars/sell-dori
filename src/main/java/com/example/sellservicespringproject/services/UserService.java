@@ -15,4 +15,6 @@ public interface UserService {
     ResponseEntity<?> verifyLogin(String token);
 
     boolean userLockOutChecking(User user);
+
+    User findUserByLogin(String login);
 }
