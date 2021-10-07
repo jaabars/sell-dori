@@ -76,7 +76,8 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     @Override
-    public ResponseEntity<?> getDiscountByProduct(String token, ProductDto productDto) {
+    public ResponseEntity<?> findDiscountByProduct(String token, ProductDto productDto) {
+
         ResponseEntity<?> responseEntity =
                 userService
                         .verifyLogin(token);
@@ -133,13 +134,17 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     @Override
-    public double findDiscountByProduct(ProductDto productDto) {
+    public double getDiscountByProduct(ProductDto productDto) {
 
         Discount discount =
                 discountRepo
                         .findActualDiscount(
                                 productDto
                                         .getId());
+
+        if (Objects.isNull(discount)) {
+            return 0;
+        }
 
         return discount
                 .getDiscount();
