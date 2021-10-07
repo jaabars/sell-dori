@@ -10,7 +10,7 @@ public class ProductDto {
 
     Long id;
     String name;
-    int barcode;
+    String barcode;
     CategoryDto category;
     boolean active;
 }
