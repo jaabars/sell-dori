@@ -8,9 +8,9 @@ public interface DiscountService {
 
     ResponseEntity<?> saveDiscount(String token, DiscountDto discountDto);
 
-    ResponseEntity<?> getDiscountByProduct(String token, ProductDto productDto);
+    ResponseEntity<?> findDiscountByProduct(String token, ProductDto productDto);
 
     ResponseEntity<?> getAllDiscounts(String token);
 
-    double findDiscountByProduct(ProductDto productDto);
+    double getDiscountByProduct(ProductDto productDto);
 }
