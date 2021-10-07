@@ -21,7 +21,7 @@ public class DiscountController {
 
     @PostMapping("getByProduct")
     public ResponseEntity<?> getByProduct(@RequestHeader String token, @RequestBody ProductDto productDto) {
-        return discountService.getDiscountByProduct(token, productDto);
+        return discountService.findDiscountByProduct(token, productDto);
     }
 
     @GetMapping("/getAllDiscounts")
