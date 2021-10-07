@@ -23,14 +23,11 @@ public class UserController {
     public ResponseEntity<?> sendCode(@RequestParam String login) {
         return userService.sendCode(login);
     }
+
     @GetMapping("/login")
     public ResponseEntity<?> getToken(@RequestParam String login, @RequestParam String code) {
         return userService.getToken(login, code);
     }
-    /*@PostMapping("/login")
-    public ResponseEntity<?> getToken(@RequestBody LoginDto login) {
-        return userService.getToken(login);
-    }*/
 
     @GetMapping("/verify")
     public ResponseEntity<?> verifyLogin(@RequestHeader String token) {
