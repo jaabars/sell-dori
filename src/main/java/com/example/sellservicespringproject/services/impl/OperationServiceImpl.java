@@ -67,26 +67,27 @@ public class OperationServiceImpl implements OperationService {
         List<OperationDetailDto> operationDetailDtoList = new ArrayList<>();
         List<ReceiptDetailsDto> receiptDetailsDtoList = new ArrayList<>();
 
+
         // for show to the buyer receiptDetails
         ReceiptDto receiptDto = new ReceiptDto();
-        ReceiptDetailsDto receiptDetailsDto = new ReceiptDetailsDto();
+
 
         // for set userId to the receipt
-        UserDto userDto = new UserDto();
+        UserDto userDto;
 
-        for (InputDataForOperation element : operationList) {
+        for (InputDataForOperation inputData : operationList) {
 
             productDto =
                     productService
                             .findProductByBarcodeForOperationDetails(
-                                    element
+                                    inputData
                                             .getBarcode()
                             );
 
             if (Objects.isNull(productDto)) {
                 return new ResponseEntity<>(
                         new ErrorResponse("Некорректно введенные данный!"
-                                , "Проверьте введенный штрихкод -> " + element.getBarcode())
+                                , "Проверьте введенный штрихкод -> " + inputData.getBarcode())
                         , HttpStatus.NOT_FOUND);
             }
 
@@ -97,19 +98,19 @@ public class OperationServiceImpl implements OperationService {
 
             operationDetailDto
                     .setQuantity(
-                            element
+                            inputData
                                     .getQuantity());
 
             price = priceService.findPriceByProductForOperationDetails(productDto);
 
-            discount = 1 - (discountService.findDiscountByProduct(productDto) / 100);
+            if (discountService.getDiscountByProduct(productDto) == 0) {
 
-            if (discount != 0) {
-
-                amount = (price * discount) * element.getQuantity();
+                amount = price * inputData.getQuantity();
             } else {
 
-                amount = price * element.getQuantity();
+                discount = 1 - (discountService.getDiscountByProduct(productDto) / 100);
+
+                amount = (price * discount) * inputData.getQuantity();
             }
 
             totalAmount += amount;
@@ -118,21 +119,22 @@ public class OperationServiceImpl implements OperationService {
 
             operationDetailDtoList.add(operationDetailDto);
 
+            ReceiptDetailsDto receiptDetailsDto = new ReceiptDetailsDto();
+
             receiptDetailsDto
                     .setName(
                             productDto
                                     .getName()
                     );
 
-            receiptDetailsDto
-                    .setBarcode(
-                            element
-                                    .getBarcode()
+            receiptDetailsDto.setBarcode(
+                    productDto
+                            .getBarcode()
                     );
 
             receiptDetailsDto
                     .setQuantity(
-                            element
+                            inputData
                                     .getQuantity()
                     );
 
@@ -140,41 +142,44 @@ public class OperationServiceImpl implements OperationService {
                     .setPrice(price);
 
             receiptDetailsDto
-                    .setDiscount(discountService.findDiscountByProduct(productDto));
+                    .setDiscount(
+                            discountService
+                                    .getDiscountByProduct(productDto)
+                    );
 
             receiptDetailsDto
                     .setAmount(amount);
 
             receiptDetailsDtoList.add(receiptDetailsDto);
-
-            Jws<Claims> jwt =
-                    Jwts
-                            .parser()
-                            .setSigningKey(secretKey)
-                            .parseClaimsJws(token);
-
-            userDto =
-                    UserMapper
-                            .INSTANCE
-                            .mapToUserDto(
-                                    userService
-                                            .findUserByLogin(
-                                                    (String) jwt.getBody().get("login")
-                                            )
-                            );
-
-            receiptDto
-                    .setCashier(
-                            userDto
-                                    .getName()
-                    );
         }
 
+        Jws<Claims> jwt =
+                Jwts
+                        .parser()
+                        .setSigningKey(secretKey)
+                        .parseClaimsJws(token);
+
+        userDto =
+                UserMapper
+                        .INSTANCE
+                        .mapToUserDto(
+                                userService
+                                        .findUserByLogin(
+                                                (String) jwt.getBody().get("login")
+                                        )
+                        );
+
         receiptDto
-                .setReceiptDetailsDto(receiptDetailsDtoList);
+                .setCashier(
+                        userDto
+                                .getName()
+                );
 
         receiptDto
                 .setTotalAmount(totalAmount);
+
+        receiptDto
+                .setReceiptDetailsDto(receiptDetailsDtoList);
 
         Operation operation = new Operation();
 
@@ -205,5 +210,48 @@ public class OperationServiceImpl implements OperationService {
                 .saveOperationDetails(operationDetailDtoList);
 
         return ResponseEntity.ok(receiptDto);
+    }
+
+    @Override
+    public ResponseEntity<?> payment(String token, Long operationId, double cash) {
+
+        ResponseEntity<?> responseEntity =
+                userService
+                        .verifyLogin(token);
+
+        if (!responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+
+            return responseEntity;
+        }
+
+        Operation operation =
+                operationRepo
+                        .findOperationById(operationId);
+
+        if (Objects.isNull(operation)) {
+            return new ResponseEntity<>(
+                    new ErrorResponse("Не найдена операция!"
+                            , "Вы ввели некорректный ID операции!")
+                    , HttpStatus.NOT_FOUND);
+        }
+
+        double change = cash - operation.getTotalAmount();
+
+        if (change < 0) {
+            return new ResponseEntity<>(
+                    new ErrorResponse("Недостаточно средств для проведения операции!", null)
+                    , HttpStatus.CONFLICT);
+        }
+
+        operation.setCash(cash);
+        operation.setChange(change);
+
+        operationRepo.save(operation);
+
+        return ResponseEntity
+                .ok(OperationMapper
+                        .INSTANCE
+                        .mapToOperationDto(operation)
+                );
     }
 }
