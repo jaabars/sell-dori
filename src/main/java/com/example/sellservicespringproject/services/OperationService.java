@@ -9,4 +9,5 @@ public interface OperationService {
 
     ResponseEntity<?> provideOperation(String token, List<InputDataForOperation> sellingList);
 
+    ResponseEntity<?> payment(String token, Long operationId, double cash);
 }
