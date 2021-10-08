@@ -11,8 +11,6 @@ import java.util.List;
 public class ReceiptDto {
 
    List<ReceiptDetailsDto> receiptDetailsDto;
-
    double totalAmount;
-
    String cashier;
 }

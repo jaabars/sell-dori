@@ -7,5 +7,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface RequestRepo extends JpaRepository<Request, Long> {
 
     int countByCodeAndSuccess(Code code, boolean success);
-
 }

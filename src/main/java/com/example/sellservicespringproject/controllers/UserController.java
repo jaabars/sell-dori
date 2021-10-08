@@ -1,6 +1,5 @@
 package com.example.sellservicespringproject.controllers;
 
-import com.example.sellservicespringproject.models.dtos.LoginDto;
 import com.example.sellservicespringproject.models.dtos.UserDto;
 import com.example.sellservicespringproject.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

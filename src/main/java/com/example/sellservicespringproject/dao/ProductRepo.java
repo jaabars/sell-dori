@@ -9,6 +9,5 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
 
   Product findByNameOrBarcode(String name, String barcode);
 
-
   Product findByBarcode(String barcode);
 }
