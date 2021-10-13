@@ -13,7 +13,7 @@ public interface DiscountRepo extends JpaRepository<Discount, Long> {
 
     List<Discount> findAllByProduct(Product product);
 
-    @Query(value = "select * from discounts where  product_id = ?1 and current_timestamp between start_date and end_date"
+    @Query(value = "select * from discounts where  product_id = ?1 and current_timestamp > start_date and current_timestamp < end_date"
             , nativeQuery = true)
     Discount findActualDiscount(Long id);
 }
