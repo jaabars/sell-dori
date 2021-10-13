@@ -11,8 +11,7 @@ import java.util.Date;
 public class OperationDto {
 
     Long id;
-    Date startDate;
-    Date endDate;
+    Date addDate;
     double totalAmount;
     double change;
     UserDto user;
